@@ -1,0 +1,36 @@
+{
+    "InternetGateways": [
+        {
+            "OwnerId": "858966410158", 
+            "Tags": [
+                {
+                    "Value": "arn:aws:cloudformation:us-west-2:858966410158:stack/c72582a1461973l3791184t1w858966410158/592f35c0-c892-11ed-ad2a-067e84a302ef", 
+                    "Key": "aws:cloudformation:stack-id"
+                }, 
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "aws:cloudformation:stack-name"
+                }, 
+                {
+                    "Value": "VPC1InternetGateway", 
+                    "Key": "aws:cloudformation:logical-id"
+                }, 
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "cloudlab"
+                }, 
+                {
+                    "Value": "VPC1 Internet Gateway", 
+                    "Key": "Name"
+                }
+            ], 
+            "Attachments": [
+                {
+                    "State": "available", 
+                    "VpcId": "vpc-07013c79de5b423c2"
+                }
+            ], 
+            "InternetGatewayId": "igw-0507d15a52c5c4c25"
+        }
+    ]
+}

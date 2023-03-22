@@ -1,0 +1,2 @@
+version account-id interface-id srcaddr dstaddr srcport dstport protocol packets bytes start end action log-status
+2 858966410158 eni-0f7ae9ee760bd16d2 79.124.56.118 10.0.1.176 58054 8922 6 1 40 1679482165 1679482166 REJECT OK

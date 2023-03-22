@@ -1,0 +1,102 @@
+{
+    "Vpcs": [
+        {
+            "VpcId": "vpc-079d3367a0a3f1f32", 
+            "InstanceTenancy": "default", 
+            "CidrBlockAssociationSet": [
+                {
+                    "AssociationId": "vpc-cidr-assoc-0b36af6633b57b2cc", 
+                    "CidrBlock": "172.31.0.0/16", 
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                }
+            ], 
+            "State": "available", 
+            "DhcpOptionsId": "dopt-04f766b406879ba8b", 
+            "OwnerId": "858966410158", 
+            "CidrBlock": "172.31.0.0/16", 
+            "IsDefault": true
+        }, 
+        {
+            "VpcId": "vpc-07013c79de5b423c2", 
+            "InstanceTenancy": "default", 
+            "Tags": [
+                {
+                    "Value": "VPC1", 
+                    "Key": "Name"
+                }, 
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "cloudlab"
+                }, 
+                {
+                    "Value": "arn:aws:cloudformation:us-west-2:858966410158:stack/c72582a1461973l3791184t1w858966410158/592f35c0-c892-11ed-ad2a-067e84a302ef", 
+                    "Key": "aws:cloudformation:stack-id"
+                }, 
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "aws:cloudformation:stack-name"
+                }, 
+                {
+                    "Value": "VPC1", 
+                    "Key": "aws:cloudformation:logical-id"
+                }
+            ], 
+            "CidrBlockAssociationSet": [
+                {
+                    "AssociationId": "vpc-cidr-assoc-084d11d118e0edaa0", 
+                    "CidrBlock": "10.0.0.0/16", 
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                }
+            ], 
+            "State": "available", 
+            "DhcpOptionsId": "dopt-04f766b406879ba8b", 
+            "OwnerId": "858966410158", 
+            "CidrBlock": "10.0.0.0/16", 
+            "IsDefault": false
+        }, 
+        {
+            "VpcId": "vpc-0e6c930f02e702541", 
+            "InstanceTenancy": "default", 
+            "Tags": [
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "aws:cloudformation:stack-name"
+                }, 
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "cloudlab"
+                }, 
+                {
+                    "Value": "arn:aws:cloudformation:us-west-2:858966410158:stack/c72582a1461973l3791184t1w858966410158/592f35c0-c892-11ed-ad2a-067e84a302ef", 
+                    "Key": "aws:cloudformation:stack-id"
+                }, 
+                {
+                    "Value": "VPC2", 
+                    "Key": "Name"
+                }, 
+                {
+                    "Value": "VPC2", 
+                    "Key": "aws:cloudformation:logical-id"
+                }
+            ], 
+            "CidrBlockAssociationSet": [
+                {
+                    "AssociationId": "vpc-cidr-assoc-01725ca22244782ba", 
+                    "CidrBlock": "192.168.0.0/16", 
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                }
+            ], 
+            "State": "available", 
+            "DhcpOptionsId": "dopt-04f766b406879ba8b", 
+            "OwnerId": "858966410158", 
+            "CidrBlock": "192.168.0.0/16", 
+            "IsDefault": false
+        }
+    ]
+}

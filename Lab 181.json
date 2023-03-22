@@ -1,0 +1,58 @@
+Lab 181
+aws ec2 describe-route-tables --filter "Name=association.subnet-id,Values='subnet-04b6dc0419d86ed5c'"{
+    "RouteTables": [
+        {
+            "Associations": [
+                {
+                    "SubnetId": "subnet-04b6dc0419d86ed5c",
+                    "AssociationState": {
+                        "State": "associated"
+                    },
+                    "RouteTableAssociationId": "rtbassoc-0e4d1de771f3b46d0",
+                    "Main": false,
+                    "RouteTableId": "rtb-0c01edef1aaa72ee1"
+                }
+            ],
+            "RouteTableId": "rtb-0c01edef1aaa72ee1",
+            "VpcId": "vpc-07013c79de5b423c2",
+            "PropagatingVgws": [],
+            "Tags": [
+                {
+                    "Value": "VPC1 Public Route Table",
+                    "Key": "Name"
+                },
+                {
+                    "Value": "VPC1PublicRouteTable",
+                    "Key": "aws:cloudformation:logical-id"
+                },
+                {
+                    "Value": "arn:aws:cloudformation:us-west-2:858966410158:stack/c72582a1461973l3791184t1w858966410158/592f35c0-c892-11ed-ad2a-067e84a302ef",
+                    "Key": "aws:cloudformation:stack-id"
+                },
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158",
+                    "Key": "aws:cloudformation:stack-name"
+                },
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158",
+                    "Key": "cloudlab"
+                }
+            ],
+            "Routes": [
+                {
+                    "GatewayId": "local",
+                    "DestinationCidrBlock": "10.0.0.0/16",
+                    "State": "active",
+                    "Origin": "CreateRouteTable"
+                },
+                {
+                    "GatewayId": "igw-0507d15a52c5c4c25",
+                    "DestinationCidrBlock": "0.0.0.0/0",
+                    "State": "active",
+                    "Origin": "CreateRoute"
+                }
+            ],
+            "OwnerId": "858966410158"
+        }
+    ]
+}

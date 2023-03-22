@@ -1,0 +1,301 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS CloudFormation Sample Template Creates an EC2 instance, VPC and RDS db. You will be billed for the AWS resources used if you create a stack from this template.",
+    "Parameters": {
+        "LatestAL2AmiId": {
+            "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+            "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+        }
+    },
+    "Resources": {
+        "LabVPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/16",
+                "EnableDnsSupport": true,
+                "EnableDnsHostnames": true,
+                "InstanceTenancy": "default",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "LabVPC"
+                    }
+                ]
+            }
+        },
+        "PublicSubnet": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/24",
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "0",
+                        {
+                            "Fn::GetAZs": {
+                                "Ref": "AWS::Region"
+                            }
+                        }
+                    ]
+                },
+                "VpcId": {
+                    "Ref": "LabVPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "LabPublicSubnet"
+                    }
+                ]
+            }
+        },
+        "PrivateSubnet1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "1",
+                        {
+                            "Fn::GetAZs": {
+                                "Ref": "AWS::Region"
+                            }
+                        }
+                    ]
+                },
+                "CidrBlock": "10.0.1.0/24",
+                "VpcId": {
+                    "Ref": "LabVPC"
+                }
+            }
+        },
+        "PrivateSubnet2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "2",
+                        {
+                            "Fn::GetAZs": {
+                                "Ref": "AWS::Region"
+                            }
+                        }
+                    ]
+                },
+                "CidrBlock": "10.0.2.0/24",
+                "VpcId": {
+                    "Ref": "LabVPC"
+                }
+            }
+        },
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway"
+        },
+        "AttachGateway": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "LabVPC"
+                },
+                "InternetGatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+        "RouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Application",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "Description",
+                        "Value": "Lab Route Table"
+                    },
+                    {
+                        "Key": "Environment",
+                        "Value": "Labs"
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": "LABSInternalRouteTable"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "LabVPC"
+                }
+            }
+        },
+        "Route": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "GatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+        "PublicSubnetRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "PublicSubnet"
+                }
+            }
+        },
+        "PrivateSubnet1RouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "PrivateSubnet1"
+                }
+            }
+        },
+        "SecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupName": "EC2SecurityGroup",
+                "GroupDescription": "Security group",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": 0,
+                        "ToPort": 65535,
+                        "IpProtocol": "tcp"
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "IpProtocol": "tcp"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "LabVPC"
+                }
+            }
+        },
+        "CommandHost": {
+            "Type": "AWS::EC2::Instance",
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Timeout": "PT20M"
+                }
+            },
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Command Host"
+                    }
+                ],
+                "ImageId": "ami-0df24e148fdb9f1d8",
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": true,
+                        "DeleteOnTermination": true,
+                        "DeviceIndex": "0",
+                        "GroupSet": [
+                            {
+                                "Ref": "SecurityGroup"
+                            }
+                        ],
+                        "SubnetId": {
+                            "Ref": "PublicSubnet"
+                        }
+                    }
+                ],
+                "InstanceType": "t3.micro"
+            },
+            "Metadata": {
+            }
+        },
+        "DBSubnetGroup": {
+            "Type": "AWS::RDS::DBSubnetGroup",
+            "Properties": {
+                "DBSubnetGroupName": "DBSubnetGroup",
+                "DBSubnetGroupDescription": "Subnets available for the RDS DB Instance",
+                "SubnetIds": [
+                    {
+                        "Ref": "PrivateSubnet1"
+                    },
+                    {
+                        "Ref": "PrivateSubnet2"
+                    }
+                ]
+            }
+        },
+        "DBSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupName": "DBSecurityGroup",
+                "GroupDescription": "Frontend Access",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 3306,
+                        "ToPort": 3306,
+                        "SourceSecurityGroupId": {
+                            "Ref": "SecurityGroup"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "LabVPC"
+                }
+            }
+        },
+        "DBCluster" :{
+            "Type" : "AWS::RDS::DBCluster",
+            "Properties" : {
+                "DBClusterIdentifier" : "primarydbcluster",
+                "Engine" : "aurora-mysql",
+                "MasterUsername" : "root",
+                "MasterUserPassword" : "password",
+                "DBSubnetGroupName" : { "Ref": "DBSubnetGroup" },
+                "VpcSecurityGroupIds" : [ { "Ref": "DBSecurityGroup"} ]
+            }
+        },
+        "DBReplicaInstance" :{
+            "Type" : "AWS::RDS::DBInstance",
+            "Properties" : {
+                "DBClusterIdentifier" : {"Ref" : "DBCluster"},
+                "DBInstanceClass" : "db.r5.large",
+                "Engine" : "aurora-mysql",
+                "DBSubnetGroupName" : { "Ref": "DBSubnetGroup" },
+                "VpcSecurityGroupIds" : [ { "Ref": "DBSecurityGroup" } ]
+            }
+        }
+    },
+    "Outputs": {
+        "LabRegion": {
+            "Description": "The AWS Region this Lab was created in",
+            "Value": {
+                "Ref": "AWS::Region"
+            },
+            "Export": {
+                "Name": "LabRegion"
+            }
+        },
+        "CommandHostPublicIP": {
+            "Description": "Public IP address of Command Host.",
+            "Value": {
+                "Fn::GetAtt": [
+                    "CommandHost",
+                    "PublicIp"
+                ]
+            }
+        }
+    }
+}

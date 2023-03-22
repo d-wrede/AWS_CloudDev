@@ -1,0 +1,354 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS CloudFormation Sample Template Creates an EC2 instance, VPC and RDS db. You will be billed for the AWS resources used if you create a stack from this template.",
+    "Parameters": {
+        "LatestAL2AmiId": {
+            "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+            "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+        }
+    },
+    "Resources": {
+        "LabVPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/16",
+                "EnableDnsSupport": true,
+                "EnableDnsHostnames": true,
+                "InstanceTenancy": "default",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "LabVPC"
+                    }
+                ]
+            }
+        },
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway"
+        },
+        "AttachGateway": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "LabVPC"
+                },
+                "InternetGatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+        "PublicSubnet": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/24",
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "0",
+                        {
+                            "Fn::GetAZs": {
+                                "Ref": "AWS::Region"
+                            }
+                        }
+                    ]
+                },
+                "VpcId": {
+                    "Ref": "LabVPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "LabPublicSubnet"
+                    }
+                ]
+            }
+        },
+        "BackupSubnet": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "1",
+                        {
+                            "Fn::GetAZs": {
+                                "Ref": "AWS::Region"
+                            }
+                        }
+                    ]
+                },
+                "CidrBlock": "10.0.1.0/24",
+                "VpcId": {
+                    "Ref": "LabVPC"
+                }
+            }
+        },
+        "SecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupName": "EC2SecurityGroup",
+                "GroupDescription": "Security group",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": 0,
+                        "ToPort": 65535,
+                        "IpProtocol": "tcp"
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "IpProtocol": "tcp"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "LabVPC"
+                }
+            }
+        },
+        "InstanceRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com",
+                                    "ssm.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Description": "An SSM role for use by EC2 Instances to be managed.",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+                    "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+                ],
+                "RoleName": "SSMInstanceRole"
+            }
+        },
+        "InstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "InstanceProfileName": "LabSSMRole",
+                "Roles": [
+                    {
+                        "Ref": "InstanceRole"
+                    }
+                ]
+            }
+        },
+        "CommandHost": {
+            "Type": "AWS::EC2::Instance",
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Timeout": "PT20M"
+                }
+            },
+            "Properties": {
+                "IamInstanceProfile": {
+                    "Ref": "InstanceProfile"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Command Host"
+                    }
+                ],
+                "ImageId": {
+                    "Ref": "LatestAL2AmiId"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": true,
+                        "DeleteOnTermination": true,
+                        "DeviceIndex": "0",
+                        "GroupSet": [
+                            {
+                                "Ref": "SecurityGroup"
+                            }
+                        ],
+                        "SubnetId": {
+                            "Ref": "PublicSubnet"
+                        }
+                    }
+                ],
+                "InstanceType": "t3.medium",
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\nyum -y update\n## Install AWS CLI v2\nyum remove awscli -y\ncurl \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" -o \"awscliv2.zip\"\nunzip awscliv2.zip\n./aws/install -b\nexport PATH=/usr/local/bin:$PATH\nrm -rf awscliv2.zip typescript aws\ntouch ~/.ssh/config\necho \"Host *\" > ~/.ssh/config\necho \"    ServerAliveInterval 60\" >> ~/.ssh/config\nchmod 600 ~/.ssh/config\nyum update -y aws-cfn-bootstrap\n/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource CommandHost --configsets IncreaseSessionMgrTimeout --region ${AWS::Region}\n/opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource CommandHost --region ${AWS::Region}\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "IncreaseSessionMgrTimeout": [
+                            "inc-session-timeout"
+                        ]
+                    },
+                    "inc-session-timeout": {
+                        "files": {
+                            "/temp/ssm-settings.yaml": {
+                                "content": "inputs:\n  s3BucketName: \"\"\n  s3KeyPrefix: \"\"\n  s3EncryptionEnabled: true\n  cloudWatchLogGroupName: \"\"\n  cloudWatchEncryptionEnabled: true\n  idleSessionTimeout: \"60\"\n  cloudWatchStreamingEnabled: true\n  kmsKeyId: \"\"\n  runAsEnabled: false\n  runAsDefaultUser: \"\"\n  shellProfile:\n    linux: cd $HOME; pwd\nschemaVersion: \"1.0\"\ndescription: Lab document to modify Session Manager idle timeout and runas user.\nsessionType: Standard_Stream\n"
+                            }
+                        },
+                        "commands": {
+                            "a-create-ssm-document": {
+                                "command": "aws ssm create-document --name \"SSM-SessionManagerRunShell\" --content \"file:///temp/ssm-settings.yaml\" --document-format YAML --document-type Session",
+                                "ignoreErrors": true
+                            },
+                            "b-configure-ssm": {
+                                "command": "aws ssm update-document --name \"SSM-SessionManagerRunShell\" --content \"file:///temp/ssm-settings.yaml\" --document-format YAML --document-version '$LATEST'",
+                                "ignoreErrors": true
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "RouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Application",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "Description",
+                        "Value": "Lab Route Table"
+                    },
+                    {
+                        "Key": "Environment",
+                        "Value": "Labs"
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": "LABSInternalRouteTable"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "LabVPC"
+                }
+            }
+        },
+        "Route": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "GatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+        "PublicSubnetRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "PublicSubnet"
+                }
+            }
+        },
+        "BackupSubnetRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "BackupSubnet"
+                }
+            }
+        },
+        "DBSubnetGroup": {
+            "Type": "AWS::RDS::DBSubnetGroup",
+            "Properties": {
+                "DBSubnetGroupName": "DBSubnetGroup",
+                "DBSubnetGroupDescription": "Subnets available for the RDS DB Instance",
+                "SubnetIds": [
+                    {
+                        "Ref": "PublicSubnet"
+                    },
+                    {
+                        "Ref": "BackupSubnet"
+                    }
+                ]
+            }
+        },
+        "DBSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupName": "DBSecurityGroup",
+                "GroupDescription": "Frontend Access",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 3306,
+                        "ToPort": 3306,
+                        "SourceSecurityGroupId": {
+                            "Ref": "SecurityGroup"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "LabVPC"
+                }
+            }
+        },
+        "EnhancedMonitoringRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "RoleName": "lab-rds-monitoring-role",
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": "monitoring.rds.amazonaws.com"
+                        },
+                        "Action": "sts:AssumeRole"
+                    }
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+                ],
+                "Path": "/"
+            }
+        }
+    },
+    "Outputs": {
+        "LabRegion": {
+            "Description": "The AWS Region this Lab was created in",
+            "Value": {
+                "Ref": "AWS::Region"
+            },
+            "Export": {
+                "Name": "LabRegion"
+            }
+        },
+        "CommandHostPublicIP": {
+            "Description": "Public IP address of Command Host.",
+            "Value": {
+                "Fn::GetAtt": [
+                    "CommandHost",
+                    "PublicIp"
+                ]
+            }
+        }
+    }
+}

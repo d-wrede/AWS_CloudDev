@@ -1,0 +1,350 @@
+{
+    "SecurityGroups": [
+        {
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "Description": "Enable SSH access", 
+            "Tags": [
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "cloudlab"
+                }, 
+                {
+                    "Value": "PrivateInstanceSecurityGroup", 
+                    "Key": "aws:cloudformation:logical-id"
+                }, 
+                {
+                    "Value": "PrivateInstanceSecurityGroup", 
+                    "Key": "Name"
+                }, 
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "aws:cloudformation:stack-name"
+                }, 
+                {
+                    "Value": "arn:aws:cloudformation:us-west-2:858966410158:stack/c72582a1461973l3791184t1w858966410158/592f35c0-c892-11ed-ad2a-067e84a302ef", 
+                    "Key": "aws:cloudformation:stack-id"
+                }
+            ], 
+            "IpPermissions": [
+                {
+                    "PrefixListIds": [], 
+                    "FromPort": 22, 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "ToPort": 22, 
+                    "IpProtocol": "tcp", 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "GroupName": "c72582a1461973l3791184t1w858966410158-PrivateInstanceSecurityGroup-1XQVPJKZNABIJ", 
+            "VpcId": "vpc-07013c79de5b423c2", 
+            "OwnerId": "858966410158", 
+            "GroupId": "sg-056bba2e5ea03758c"
+        }, 
+        {
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "Description": "default VPC security group", 
+            "IpPermissions": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [], 
+                    "UserIdGroupPairs": [
+                        {
+                            "UserId": "858966410158", 
+                            "GroupId": "sg-0fc481b7413ba9f58"
+                        }
+                    ], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "GroupName": "default", 
+            "VpcId": "vpc-079d3367a0a3f1f32", 
+            "OwnerId": "858966410158", 
+            "GroupId": "sg-0fc481b7413ba9f58"
+        }, 
+        {
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "Description": "Enable internal access to the NAT device", 
+            "Tags": [
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "aws:cloudformation:stack-name"
+                }, 
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "cloudlab"
+                }, 
+                {
+                    "Value": "NATSecurityGroup", 
+                    "Key": "Name"
+                }, 
+                {
+                    "Value": "NATSecurityGroup", 
+                    "Key": "aws:cloudformation:logical-id"
+                }, 
+                {
+                    "Value": "arn:aws:cloudformation:us-west-2:858966410158:stack/c72582a1461973l3791184t1w858966410158/592f35c0-c892-11ed-ad2a-067e84a302ef", 
+                    "Key": "aws:cloudformation:stack-id"
+                }
+            ], 
+            "IpPermissions": [
+                {
+                    "PrefixListIds": [], 
+                    "FromPort": 0, 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "10.0.4.0/24"
+                        }, 
+                        {
+                            "CidrIp": "10.0.3.0/24"
+                        }
+                    ], 
+                    "ToPort": 1024, 
+                    "IpProtocol": "tcp", 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "GroupName": "c72582a1461973l3791184t1w858966410158-NATSecurityGroup-1Q2UBB1SP6KCZ", 
+            "VpcId": "vpc-07013c79de5b423c2", 
+            "OwnerId": "858966410158", 
+            "GroupId": "sg-00a7eb3e696b972fa"
+        }, 
+        {
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "Description": "Enable SSH access", 
+            "Tags": [
+                {
+                    "Value": "CliHostSecurityGroup", 
+                    "Key": "aws:cloudformation:logical-id"
+                }, 
+                {
+                    "Value": "CliHostSecurityGroup", 
+                    "Key": "Name"
+                }, 
+                {
+                    "Value": "arn:aws:cloudformation:us-west-2:858966410158:stack/c72582a1461973l3791184t1w858966410158/592f35c0-c892-11ed-ad2a-067e84a302ef", 
+                    "Key": "aws:cloudformation:stack-id"
+                }, 
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "aws:cloudformation:stack-name"
+                }, 
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "cloudlab"
+                }
+            ], 
+            "IpPermissions": [
+                {
+                    "PrefixListIds": [], 
+                    "FromPort": 22, 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "ToPort": 22, 
+                    "IpProtocol": "tcp", 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "GroupName": "c72582a1461973l3791184t1w858966410158-CliHostSecurityGroup-1ON3TB11XGBYD", 
+            "VpcId": "vpc-0e6c930f02e702541", 
+            "OwnerId": "858966410158", 
+            "GroupId": "sg-0682aa852b6816cb8"
+        }, 
+        {
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "Description": "default VPC security group", 
+            "IpPermissions": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [], 
+                    "UserIdGroupPairs": [
+                        {
+                            "UserId": "858966410158", 
+                            "GroupId": "sg-041ab2231bad969af"
+                        }
+                    ], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "GroupName": "default", 
+            "VpcId": "vpc-07013c79de5b423c2", 
+            "OwnerId": "858966410158", 
+            "GroupId": "sg-041ab2231bad969af"
+        }, 
+        {
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "Description": "Enable HTTP access", 
+            "Tags": [
+                {
+                    "Value": "WebSecurityGroup", 
+                    "Key": "aws:cloudformation:logical-id"
+                }, 
+                {
+                    "Value": "WebSecurityGroup", 
+                    "Key": "Name"
+                }, 
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "cloudlab"
+                }, 
+                {
+                    "Value": "arn:aws:cloudformation:us-west-2:858966410158:stack/c72582a1461973l3791184t1w858966410158/592f35c0-c892-11ed-ad2a-067e84a302ef", 
+                    "Key": "aws:cloudformation:stack-id"
+                }, 
+                {
+                    "Value": "c72582a1461973l3791184t1w858966410158", 
+                    "Key": "aws:cloudformation:stack-name"
+                }
+            ], 
+            "IpPermissions": [
+                {
+                    "PrefixListIds": [], 
+                    "FromPort": 80, 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "ToPort": 80, 
+                    "IpProtocol": "tcp", 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }, 
+                {
+                    "PrefixListIds": [], 
+                    "FromPort": 22, 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "ToPort": 22, 
+                    "IpProtocol": "tcp", 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "GroupName": "c72582a1461973l3791184t1w858966410158-WebSecurityGroup-17RVBKSSN07X6", 
+            "VpcId": "vpc-07013c79de5b423c2", 
+            "OwnerId": "858966410158", 
+            "GroupId": "sg-0c5acdc2c0d212da4"
+        }, 
+        {
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "Description": "default VPC security group", 
+            "IpPermissions": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [], 
+                    "UserIdGroupPairs": [
+                        {
+                            "UserId": "858966410158", 
+                            "GroupId": "sg-02f1a4a5e738fc796"
+                        }
+                    ], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "GroupName": "default", 
+            "VpcId": "vpc-0e6c930f02e702541", 
+            "OwnerId": "858966410158", 
+            "GroupId": "sg-02f1a4a5e738fc796"
+        }
+    ]
+}
