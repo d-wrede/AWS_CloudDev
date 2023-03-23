@@ -1,0 +1,67 @@
+aws cloudformation create-stack --stack-name myStack --template-body file://template1.yaml --capabilities CAPABILITY_NAMED_IAM --on-failure DO_NOTHING --parameters ParameterKey=KeyName,ParameterValue=vockey
+
+watch -n 5 -d \
+aws cloudformation describe-stack-resources \
+--stack-name myStack \
+--query 'StackResources[*].[ResourceType,ResourceStatus]' \
+--output table
+
+watch -n 5 -d \
+aws cloudformation describe-stacks \
+--stack-name myStack \
+--output table
+
+aws cloudformation describe-stack-events \
+--stack-name myStack \
+--query "StackEvents[?ResourceStatus == 'CREATE_FAILED']"
+
+aws ec2 describe-instances \
+--filters "Name=tag:Name,Values='Web Server'" \
+--query 'Reservations[].Instances[].[State.Name,PublicIpAddress]'
+
+bucketName=$(\
+aws cloudformation describe-stacks \
+--stack-name myStack \
+--query "Stacks[*].Outputs[?OutputKey \
+== 'BucketName'].[OutputValue]" \
+--output text)
+echo "bucketName = "$bucketName
+
+aws s3 cp myfile s3://mystack-mybucket-vp9got2t619s/
+aws s3 ls s3://mystack-mybucket-vp9got2t619s/
+
+# drift analysis
+
+aws cloudformation describe-stack-resources \
+--stack-name myStack \
+--query 'StackResources[*].[ResourceType,ResourceStatus,DriftInformation.StackResourceDriftStatus]' \
+--output table
+
+aws cloudformation describe-stack-resource-drifts \
+--stack-name myStack \
+--stack-resource-drift-status-filters MODIFIED
+
+aws cloudformation update-stack \
+--stack-name myStack \
+--template-body file://template1.yaml \
+--parameters ParameterKey=KeyName,ParameterValue=vockey
+
+watch -n 5 -d \
+aws cloudformation describe-stack-resources \
+--stack-name myStack \
+--query 'StackResources[*].[ResourceType,ResourceStatus]' \
+--output table
+
+aws cloudformation describe-stacks \
+--stack-name myStack \
+--output table
+
+34.220.40.98
+
+aws cloudformation describe-stack-resources \
+--stack-name myStack \
+--query 'StackResources[?ResourceType==`AWS::S3::Bucket`].[LogicalResourceId]' \
+--output table
+
+aws cloudformation delete-stack --stack-name myStack \
+--retain-resources MyBucket
