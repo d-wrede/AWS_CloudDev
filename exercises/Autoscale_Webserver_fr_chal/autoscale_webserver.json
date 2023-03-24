@@ -1,0 +1,432 @@
+{
+    "AWSTemplateFormatVersion": "2023-03-24",
+    "Description": "",
+    "Parameters": {},
+    "Mappings": {},
+    "Resources": {
+        "autoscaling_webserver_VPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/24",
+                "EnableDnsHostnames": true,
+                "EnableDnsSupport": true,
+                "InstanceTenancy": "default",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Values": "autoscaling_webserver_VPC"
+                    }
+                ]
+            }
+        },
+        "public_subnet_1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/27",
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "0",
+                        {
+                            "Fn::GetAZs": {
+                                "Ref": "AWS::Region"
+                            }
+                        }
+                    ]
+                },
+                "VpcId": {
+                    "Ref": "aurora_stack_vpc"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Values": "public_subnet_1"
+                    }
+                ]
+            }
+        },
+        "vpc_private_subnet_1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "CidrBlock": "10.0.0.32/27",
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "0",
+                        {
+                            "Fn::GetAZs": {
+                                "Ref": "AWS::Region"
+                            }
+                        }
+                    ]
+                },
+                "VpcId": {
+                    "Ref": "aurora_stack_vpc"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Values": "private_subnet_1"
+                    }
+                ]
+            }
+        },
+        "vpc_private_subnet_2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "CidrBlock": "10.0.0.64/27",
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "1",
+                        {
+                            "Fn::GetAZs": {
+                                "Ref": "AWS::Region"
+                            }
+                        }
+                    ]
+                },
+                "VpcId": {
+                    "Ref": "aurora_stack_vpc"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Values": "private_subnet_2"
+                    }
+                ]
+            }
+        },
+        "internet_gateway": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Values": "internet_gateway"
+                    }
+                ]
+            }
+        },
+        "MyNATGateway": {
+            "Type": "AWS::EC2::NatGateway",
+            "Properties": {
+                "AllocationId": "EIPAllocationID",
+                "SubnetId": "PrivateSubnetID"
+            }
+        },
+        "public_route_table": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "aurora_stack_vpc"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Values": "public_route_table"
+                    }
+                ],
+                "route": {
+                    "Type": "AWS::EC2::Route",
+                    "Properties": {
+                        "RouteTableId": {
+                            "Ref": "public_route_table"
+                        },
+                        "DestinationCidrBlock": "0.0.0.0/0",
+                        "GatewayId": {
+                            "Ref": "internet_gateway"
+                        }
+                    }
+                }
+            },
+          "DependsOn": "internet_gateway"
+        },
+        "MyRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": "RouteTableID",
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "NatGatewayId": "NATGatewayID"
+            }
+        },
+        "route_table_association_1": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "vpc_public_subnet_1"
+                },
+                "RouteTableId": {
+                    "Ref": "public_route_table"
+                }
+            }
+        },
+
+
+
+        "WebServerSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupName": "WebServerSecurityGroup",
+                "GroupDescription": "WebServer traffic",
+                "VpcId": {
+                    "Ref": "aurora_stack_vpc"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "22",
+                        "ToPort": "22",
+                        "CidrIp": "0.0.0.0/0",
+                        "Name": "SSH_rule"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "3306",
+                        "ToPort": "3306",
+                        "CidrIp": "0.0.0.0/0",
+                        "Name": "DB_rule"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "22",
+                        "ToPort": "22",
+                        "CidrIp": "0.0.0.0/0",
+                        "Name": "SSH_rule"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "3306",
+                        "ToPort": "3306",
+                        "CidrIp": "0.0.0.0/0",
+                        "Name": "DB_rule"
+                    }
+                ]    
+            }
+        },
+        "Aurora_SecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupName": "aurora_communication",
+                "GroupDescription": "Allow communication with Aurora",
+                "VpcId": {
+                    "Ref": "aurora_stack_vpc"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "3306",
+                        "ToPort": "3306",
+                        "SourceSecurityGroupId": {
+                            "Ref": "EC2_to_Eurora_SecurityGroup"
+                        }
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "3306",
+                        "ToPort": "3306",
+                        "SourceSecurityGroupId": {
+                            "Ref": "EC2_to_Eurora_SecurityGroup"
+                        }
+                    }
+                ]
+            }
+        },
+        "ELB_SecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupName": "ELB_SecurityGroup",
+                "GroupDescription": "Allow ELB traffic",
+                "VpcId": {
+                    "Ref": "aurora_stack_vpc"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "80",
+                        "ToPort": "80",
+                        "CidrIp": "0.0.0.0/0",
+                        "Name": "HTTP_rule"
+                    }
+                ]
+            }
+        },
+        "TargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "Name": "WordPressTargetGroup",
+                "Protocol": "HTTP",
+                "Port": 80,
+                "VpcId": "Your_VPC_ID",
+                "TargetType": "instance",
+                "HealthCheckPath": "/wp-admin/install.php"
+            }
+        },
+        "LoadBalancer": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Name": "WordPressLoadBalancer",
+                "Scheme": "internet-facing",
+                "Subnets": [
+                    "Private_Subnet_ID_1",
+                    "Private_Subnet_ID_2"
+                ],
+                "SecurityGroups": [
+                    {
+                        "Ref": "ELB_SecurityGroup"
+                    }
+                ],
+                "Type": "application"
+            }
+        },
+        "Listener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "LoadBalancerArn": {
+                    "Ref": "Balancer"
+                },
+                "Protocol": "HTTP",
+                "Port": 80,
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn": {
+                            "Ref": "TargetGroup"
+                        }
+                    }
+                ]
+            }
+        },
+        "InstanceLaunchTemplate": {
+            "Type": "AWS::EC2::LaunchTemplate",
+            "Properties": {
+                "LaunchTemplateName": "WordPressInstanceTemplate",
+                "LaunchTemplateData": {
+                    "InstanceType": "t2.micro",
+                    "ImageId": "Your_AMI_ID",
+                    "KeyName": "Your_SSH_Key_Pair_Name",
+                    "SecurityGroupIds": [
+                        "Your_Instance_Security_Group_ID"
+                    ],
+                    "UserData": {
+                        "Fn::Base64": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    "#!/bin/bash\n",
+                                    "sudo apt update\n",
+                                    "sudo apt install -y apache2 php libapache2-mod-php mysql-server php-mysql\n",
+                                    "sudo systemctl enable apache2\n",
+                                    "sudo systemctl start apache2\n",
+                                    "sudo apt install -y wget unzip\n",
+                                    "wget https://wordpress.org/latest.zip\n",
+                                    "sudo unzip latest.zip -d /var/www/html/\n",
+                                    "sudo chown -R www-data:www-data /var/www/html/wordpress\n",
+                                    "sudo chmod -R 755 /var/www/html/wordpress\n"
+                                ]
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "AutoScalingGroup": {
+            "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "Properties": {
+                "AutoScalingGroupName": "WordPressAutoScalingGroup",
+                "MinSize": "1",
+                "MaxSize": "3",
+                "DesiredCapacity": "2",
+                "HealthCheckType": "ELB",
+                "HealthCheckGracePeriod": 300,
+                "LaunchTemplate": {
+                    "LaunchTemplateId": {
+                        "Ref": "InstanceLaunchTemplate"
+                    },
+                    "Version": {
+                        "Fn::GetAtt": [
+                            "InstanceLaunchTemplate",
+                            "LatestVersionNumber"
+                        ]
+                    }
+                },
+                "VPCZoneIdentifier": [
+                    "Private_Subnet_ID_1",
+                    "Private_Subnet_ID_2"
+                ],
+                "TargetGroupARNs": [
+                    {
+                        "Ref": "TargetGroup"
+                    }
+                ]
+            }
+        },
+                    
+
+
+
+        "RDS_cluster_Aurora": {
+            "Type": "AWS::RDS::DBCluster",
+            "Properties": {
+                "Engine": "aurora-mysql",
+                "EngineVersion": "5.7.mysql_aurora.2.11.1",
+                "DatabaseName": "db",
+                "MasterUsername": "admin",
+                "MasterPassword": "admin123",
+                "BackupRetentionPeriod": "5",
+                "PreferredBackupWindow": "07:00-09:00",
+                "VpcSecurityGroupIds": [
+                    {
+                        "Ref": "Aurora_SecurityGroup"
+                    }
+                ],
+                "DBSubnetGroupName": {
+                    "Ref": "DB_subnet_group"
+                },
+                "StorageEncrypted": "false",
+                "DeletionProtection": "false",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Values": "RDS_cluster_Aurora"
+                    }
+                ]
+            }
+        },
+        "DB_subnet_group": {
+            "Type": "AWS::RDS::DBSubnetGroup",
+            "Properties": {
+                "DBSubnetGroupDescription": "Subnets available for the RDS DB Instance",
+                "SubnetIds": [
+                    {
+                        "Ref": "vpc_private_subnet_1"
+                    },
+                    {
+                        "Ref": "vpc_private_subnet_2"
+                    }
+                ]
+            }
+        },
+        "DB_Aurora_Instance": {
+            "Type": "AWS::RDS::DBInstance",
+            "Properties": {
+                "DBInstanceClass": "db.t3.small",
+                "Engine": "aurora-mysql",
+                "EngineVersion": "5.7.mysql_aurora.2.11.1",
+                "DBClusterIdentifier": {
+                    "Ref": "RDS_cluster_Aurora"
+                },
+                "DBSubnetGroupName": {
+                    "Ref": "DB_subnet_group"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Values": "DB_Aurora_Instance"
+                    }
+                ]
+            }
+        },
+        
+        
