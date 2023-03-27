@@ -42,3 +42,9 @@ Following the descriptions here:
   - allow web_server with aurora communication
     - port 3306 ingress
   - allow aurora all egress (outbound) communication
+
+
+
+{
+    "StackId": "arn:aws:cloudformation:us-west-2:458300579362:stack/myStack/87b38b60-ccae-11ed-ac93-06ee7d5dda8b"
+}

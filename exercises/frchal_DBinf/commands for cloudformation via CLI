@@ -2,7 +2,7 @@ aws cloudformation create-stack --stack-name myStack --template-body file://temp
 
 watch -n 5 -d \
 aws cloudformation describe-stack-resources \
---stack-name myStack \
+--stack-name myStack2 \
 --query 'StackResources[*].[ResourceType,ResourceStatus]' \
 --output table
 
@@ -65,3 +65,9 @@ aws cloudformation describe-stack-resources \
 
 aws cloudformation delete-stack --stack-name myStack \
 --retain-resources MyBucket
+
+
+
+
+
+aws cloudformation create-stack --stack-name myStack --template-body /Users/danielwrede/Documents/AWS_CloudDev/AWSCloudDev_repo/exercises/frchal_DBinf/template2.yaml --capabilities CAPABILITY_NAMED_IAM --on-failure DO_NOTHING --parameters ParameterKey=KeyName,ParameterValue=vockey

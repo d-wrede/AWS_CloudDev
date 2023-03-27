@@ -319,7 +319,7 @@
                     }
                 }
             }
-        }
+        },
         "RDS_cluster_Aurora": {
             "Type": "AWS::RDS::DBCluster",
             "Properties": {

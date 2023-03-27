@@ -1,0 +1,232 @@
+Description: "2023-03-24"
+Parameters: {}
+Mappings: {}
+Resources:
+  wordpressVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/24
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: wordpressVPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.0/27
+      AvailabilityZone:
+        Fn::Select:
+          - "0"
+          - Fn::GetAZs:
+              Ref: AWS::Region
+      VpcId:
+        Ref: wordpressVPC
+      Tags:
+        - Key: Name
+          Value: PublicSubnet1
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.64/27
+      AvailabilityZone:
+        Fn::Select:
+          - "0"
+          - Fn::GetAZs:
+              Ref: AWS::Region
+      VpcId:
+        Ref: wordpressVPC
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet1
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.96/27
+      AvailabilityZone:
+        Fn::Select:
+          - "1"
+          - Fn::GetAZs:
+              Ref: AWS::Region
+      VpcId:
+        Ref: wordpressVPC
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet2
+    
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InternetGateway
+  
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: 
+        Ref: wordpressVPC
+      InternetGatewayId:
+        Ref: InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: wordpressVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+    DependsOn: InternetGateway
+  
+  IGWRoute:
+    Type: AWS::EC2::Route
+    Properties: 
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway
+      RouteTableId:
+        Ref: PublicRouteTable
+
+  RouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet1
+      RouteTableId:
+        Ref: PublicRouteTable
+
+  #################
+  # Security Groups
+  #################
+
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: WebServerSecurityGroup
+      GroupDescription: WebServer traffic
+      VpcId:
+        Ref: wordpressVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: 0.0.0.0/0
+          Description: SSHRuleIngress
+        - IpProtocol: tcp
+          FromPort: "3306"
+          ToPort: "3306"
+          CidrIp: 0.0.0.0/0
+          Description: DBRuleIngress
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: 0.0.0.0/0
+          Description: SSHRuleEgress
+        - IpProtocol: tcp
+          FromPort: "3306"
+          ToPort: "3306"
+          CidrIp: 0.0.0.0/0
+          Description: DBRuleEgress
+  AuroraSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: aurora_communication
+      GroupDescription: Allow communication with Aurora
+      VpcId:
+        Ref: wordpressVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "3306"
+          ToPort: "3306"
+          SourceSecurityGroupId:
+            Ref: WebServerSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: "3306"
+          ToPort: "3306"
+          SourceSecurityGroupId:
+            Ref: WebServerSecurityGroup
+
+  #################
+  # ec2 instance
+  #################
+
+  ec2WordpressServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0df24e148fdb9f1d8
+      InstanceType: t3.micro
+      KeyName: vockey
+      SubnetId:
+        Ref: PublicSubnet1
+      SecurityGroupIds:
+        - Ref: WebServerSecurityGroup
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - ""
+            - - "#!/bin/bash\n"
+              - "yum update -y\n"
+              - "amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2\n"
+              - "yum install -y httpd mariadb-server\n"
+              - "systemctl start httpd\n"
+              - "systemctl enable httpd\n"
+              - "systemctl start mariadb\n"
+              - "systemctl enable mariadb\n"
+              - "yum install -y wget unzip\n"
+              - "wget https://wordpress.org/latest.zip\n"
+              - "unzip latest.zip -d /var/www/html/\n"
+              - "chown -R apache:apache /var/www/html/wordpress\n"
+              - "chmod -R 755 /var/www/html/wordpress\n"
+              - "systemctl restart httpd\n"
+
+
+  #################
+  # database
+  #################
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets available for the RDS DB Instance
+      SubnetIds:
+        - Ref: PrivateSubnet1
+        - Ref: PrivateSubnet2
+  RDSClusterAurora:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-mysql
+      EngineVersion: 5.7.mysql_aurora.2.11.1
+      DatabaseName: db
+      MasterUsername: admin
+      MasterUserPassword: "mysecretpassword"
+      BackupRetentionPeriod: "5"
+      PreferredBackupWindow: 07:00-09:00
+      VpcSecurityGroupIds:
+        - Ref: AuroraSecurityGroup
+      DBSubnetGroupName:
+        Ref: DBSubnetGroup
+      StorageEncrypted: "false"
+      DeletionProtection: "false"
+      Tags:
+        - Key: Name
+          Value: RDSClusterAurora
+  DBAuroraInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: db.t3.small
+      Engine: aurora-mysql
+      EngineVersion: 5.7.mysql_aurora.2.11.1
+      DBClusterIdentifier:
+        Ref: RDSClusterAurora
+      DBSubnetGroupName:
+        Ref: DBSubnetGroup
+      Tags:
+        - Key: Name
+          Value: DBAuroraInstance
