@@ -1,4 +1,5 @@
 # Stepthrough
+Preparation before setting it up in json file.
 Following the descriptions here:
 - https://github.com/Jan0770/terraformPractice/
 - https://github.com/JonasHaas/nf-db-challenge/

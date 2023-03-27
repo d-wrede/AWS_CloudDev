@@ -49,7 +49,6 @@ Create:
 5. empty
 6. an Auto Scaling group
    - a launch template with the desired EC2 instance settings (install WordPress and DB_client)
-7. the RDS databases, including the DBsubnet and DBcluster Aurora, and configure the master database in the private subnet1 of AZ-A and the secondary read replica database in the private subnet2 of AZ-B.
 8. an Elastic Load Balancer and configure it to balance traffic between the EC2 instances.
 9. Set up an auto scaling system for both the EC2 instances and the databases.
 10. a launch template for the EC2 instances.

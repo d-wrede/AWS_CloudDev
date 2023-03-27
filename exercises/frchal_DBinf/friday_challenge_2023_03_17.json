@@ -320,76 +320,75 @@
                 }
             }
         }
-    },
-    "RDS_cluster_Aurora": {
-        "Type": "AWS::RDS::DBCluster",
-        "Properties": {
-            "Engine": "aurora-mysql",
-            "EngineVersion": "5.7.mysql_aurora.2.11.1",
-            "DatabaseName": "db",
-            "MasterUsername": "admin",
-            "MasterPassword": "admin123",
-            "BackupRetentionPeriod": "5",
-            "PreferredBackupWindow": "07:00-09:00",
-            "VpcSecurityGroupIds": [
-                {
-                    "Ref": "Aurora_SecurityGroup"
-                }
-            ],
-            "DBSubnetGroupName": {
-                "Ref": "DB_subnet_group"
-            },
-            "StorageEncrypted": "false",
-            "DeletionProtection": "false",
-            "Tags": [
-                {
-                    "Key": "Name",
-                    "Values": "RDS_cluster_Aurora"
-                }
-            ]
+        "RDS_cluster_Aurora": {
+            "Type": "AWS::RDS::DBCluster",
+            "Properties": {
+                "Engine": "aurora-mysql",
+                "EngineVersion": "5.7.mysql_aurora.2.11.1",
+                "DatabaseName": "db",
+                "MasterUsername": "admin",
+                "MasterPassword": "admin123",
+                "BackupRetentionPeriod": "5",
+                "PreferredBackupWindow": "07:00-09:00",
+                "VpcSecurityGroupIds": [
+                    {
+                        "Ref": "Aurora_SecurityGroup"
+                    }
+                ],
+                "DBSubnetGroupName": {
+                    "Ref": "DB_subnet_group"
+                },
+                "StorageEncrypted": "false",
+                "DeletionProtection": "false",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Values": "RDS_cluster_Aurora"
+                    }
+                ]
+            }
+        },
+        "DB_Aurora_Instance": {
+            "Type": "AWS::RDS::DBInstance",
+            "Properties": {
+                "DBInstanceClass": "db.t3.small",
+                "Engine": "aurora-mysql",
+                "EngineVersion": "5.7.mysql_aurora.2.11.1",
+                "DBClusterIdentifier": {
+                    "Ref": "RDS_cluster_Aurora"
+                },
+                "DBSubnetGroupName": {
+                    "Ref": "DB_subnet_group"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Values": "DB_Aurora_Instance"
+                    }
+                ]
+            }
+        },
+        "DB_Aurora_Replica_Instance": {
+            "Type": "AWS::RDS::DBInstance",
+            "Properties": {
+                "DBInstanceClass": "db.t3.small",
+                "Engine": "aurora-mysql",
+                "EngineVersion": "5.7.mysql_aurora.2.11.1",
+                "DBClusterIdentifier": {
+                    "Ref": "RDS_cluster_Aurora"
+                },
+                "DBSubnetGroupName": {
+                    "Ref": "DB_subnet_group"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Values": "DB_Aurora_Replica_Instance"
+                    }
+                ]
+            }
         }
     },
-    "DB_Aurora_Instance": {
-        "Type": "AWS::RDS::DBInstance",
-        "Properties": {
-            "DBInstanceClass": "db.t3.small",
-            "Engine": "aurora-mysql",
-            "EngineVersion": "5.7.mysql_aurora.2.11.1",
-            "DBClusterIdentifier": {
-                "Ref": "RDS_cluster_Aurora"
-            },
-            "DBSubnetGroupName": {
-                "Ref": "DB_subnet_group"
-            },
-            "Tags": [
-                {
-                    "Key": "Name",
-                    "Values": "DB_Aurora_Instance"
-                }
-            ]
-        }
-    },
-    "DB_Aurora_Replica_Instance": {
-        "Type": "AWS::RDS::DBInstance",
-        "Properties": {
-            "DBInstanceClass": "db.t3.small",
-            "Engine": "aurora-mysql",
-            "EngineVersion": "5.7.mysql_aurora.2.11.1",
-            "DBClusterIdentifier": {
-                "Ref": "RDS_cluster_Aurora"
-            },
-            "DBSubnetGroupName": {
-                "Ref": "DB_subnet_group"
-            },
-            "Tags": [
-                {
-                    "Key": "Name",
-                    "Values": "DB_Aurora_Replica_Instance"
-                }
-            ]
-        }
-    },
-
     "Outputs": {
         "EC2PublicIP": {
             "Description": "Public IP address of the EC2 instance",
@@ -406,8 +405,7 @@
               "Fn::GetAtt": [
                 "ec2_command_instance",
                 "InstanceStatus"
-              ]
-            }
+              ]}
           },
         "DBInstanceEndpoint": {
             "Value": {
@@ -419,12 +417,9 @@
                             "Fn::GetAtt": [
                                 "DBInstance",
                                 "Endpoint.Address"
-                            ]
-                        }
-                    ]
-                ]
-            }
-        },
+                            ]}
+                    ]]
+            }},
         "InstanceLaunchStatus": {
             "Value": {
                 "Fn::Join": [
@@ -436,10 +431,6 @@
                                 "InstanceLaunched",
                                 "Instance launched successfully",
                                 "Instance launch failed"
-                            ]
-                        }
-                    ]
-                ]
-            }
-        }
+                            ]}
+                    ]]}}
     }}
